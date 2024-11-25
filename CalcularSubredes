@@ -1,0 +1,72 @@
+import ipaddress
+
+def calcular_wildcard(netmask):
+    """
+    Calcula la dirección wildcard a partir de la máscara de subred.
+    """
+    wildcard = []
+    for octeto in netmask.split('.'):
+        wildcard.append(str(255 - int(octeto)))
+    return '.'.join(wildcard)
+
+def mostrar_binario(ip):
+    """
+    Convierte una dirección IP en formato binario.
+    """
+    return '.'.join([f"{int(octeto):08b}" for octeto in ip.split('.')])
+
+def determinar_clase(ip):
+    """
+    Determina la clase de una dirección IP.
+    """
+    primer_octeto = int(ip.split('.')[0])
+    if 1 <= primer_octeto <= 126:
+        return "Clase A"
+    elif 128 <= primer_octeto <= 191:
+        return "Clase B"
+    elif 192 <= primer_octeto <= 223:
+        return "Clase C"
+    elif 224 <= primer_octeto <= 239:
+        return "Clase D (Multicast)"
+    elif 240 <= primer_octeto <= 255:
+        return "Clase E (Reservada)"
+    else:
+        return "Clase desconocida"
+
+def calculadora_subred(direccion_red, mascara_red):
+    try:
+        # Crear la red combinando dirección y máscara
+        red = ipaddress.ip_network(f"{direccion_red}/{mascara_red}", strict=False)
+        
+        # Máscara de subred
+        netmask = red.netmask
+        wildcard = calcular_wildcard(str(netmask))
+        clase_ip = determinar_clase(direccion_red)
+        
+        # Hosts válidos
+        hosts = list(red.hosts())
+        host_min = hosts[0] if hosts else "N/A"
+        host_max = hosts[-1] if hosts else "N/A"
+        
+        print("\nCalculadora de Subredes")
+        print("="*30)
+        print(f"Address: {red.network_address}")
+        print(f"Netmask: {netmask} = {red.prefixlen}")
+        print(f"Netmask (binario): {mostrar_binario(str(netmask))}")
+        print(f"Wildcard: {wildcard}")
+        print(f"Clase IP: {clase_ip}")
+        print(f"=>")
+        print(f"Network: {red.network_address}/{red.prefixlen}")
+        print(f"HostMin: {host_min}")
+        print(f"HostMax: {host_max}")
+        print(f"Broadcast: {red.broadcast_address}")
+        print(f"Hosts/Net: {red.num_addresses - 2} (excluyendo red y broadcast)")
+    except ValueError as e:
+        print(f"Error: {e}. Por favor, revise la dirección y la máscara de red ingresadas.")
+
+if __name__ == "__main__":
+    print("Calculadora de Subredes")
+    print("========================")
+    direccion_red = input("Por favor, ingrese una dirección de red válida (por ejemplo, 192.168.1.0): ")
+    mascara_red = input("Por favor, ingrese una máscara de red válida (por ejemplo, 255.255.255.0): ")
+    calculadora_subred(direccion_red, mascara_red)
